@@ -1,0 +1,12 @@
+services:
+  freeswitch:
+    image: freeswitch:latest
+    container_name: freeswitch
+    hostname: freeswitch
+    restart: always
+    volumes:
+      - ./freeswitch/conf:/etc/freeswitch
+      - ./logs:/usr/local/freeswitch/log
+    network_mode: host
+    privileged: true
+
