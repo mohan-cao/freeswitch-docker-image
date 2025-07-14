@@ -1,11 +1,9 @@
-#When the system kernel is incompatible with the docker system, switch bullseye to buster
-
 FROM debian:bookworm
 MAINTAINER Mohan Cao <mohancao@yahoo.com.au>
 
-#RUN sed -i 's/http:\/\/deb.debian.org/http:\/\/debian.mirror.digitalpacific.com.au/g' /etc/apt/sources.list
-RUN apt-get update && DEBIAN_FRONTEND=noninteractive apt-get -yq install git
+# Heavily adapted from https://articles.surfin.sg/2024/05/17/20240517/
 
+RUN apt-get update && DEBIAN_FRONTEND=noninteractive apt-get -yq install git
 RUN cd /usr/src/ \
     && git clone https://github.com/signalwire/freeswitch.git -bv1.10 freeswitch \
     && cd freeswitch \
@@ -75,8 +73,8 @@ RUN cd /usr/src/libs/mod_bcg729 && sed 's\^FS_INCLUDES.*\FS_INCLUDES=/usr/local/
 
 RUN ln -sf /usr/local/freeswitch/bin/freeswitch /usr/bin/
 RUN ln -sf /usr/local/freeswitch/bin/fs_cli /usr/bin/
-RUN mkdir -p /usr/share/freeswitch/conf
-RUN cp -r /usr/src/freeswitch/conf/vanilla /usr/share/freeswitch/conf/vanilla
+#RUN mkdir -p /usr/share/freeswitch/conf
+#RUN cp -r /usr/src/freeswitch/conf/vanilla /usr/share/freeswitch/conf/vanilla
 
 # make the "en_US.UTF-8" locale so freeswitch will be utf-8 enabled by default
 RUN apt-get update && apt-get install -y locales && rm -rf /var/lib/apt/lists/* \
@@ -103,15 +101,11 @@ RUN mkdir -p /var/run/freeswitch
 COPY docker-entrypoint.sh /
 RUN chmod +x docker-entrypoint.sh
 
-# Change perms for vars folder
-
 # Limits Configuration
 COPY freeswitch.limits.conf /etc/security/limits.d/
 
 # Cleanup the image
 RUN apt-get autoremove
-
-# Uncomment to cleanup even more
 RUN rm -rf /usr/src/*
 
 EXPOSE 8021/tcp
@@ -123,7 +117,7 @@ EXPOSE 64535-65535/udp
 EXPOSE 16384-32768/udp
 
 # Set up volumes
-VOLUME ["/usr/local/freeswitch/conf"]
+# VOLUME ["/usr/local/freeswitch/conf"]
 
 SHELL ["/bin/bash"]
 HEALTHCHECK --interval=15s --timeout=5s \
