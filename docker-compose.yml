@@ -1,6 +1,6 @@
 services:
   freeswitch:
-    image: freeswitch:latest
+    image: ghcr.io/mohan-cao/freeswitch-docker-compose:nightly
     container_name: freeswitch
     hostname: freeswitch
     restart: always
