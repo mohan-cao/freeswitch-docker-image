@@ -109,6 +109,9 @@ COPY freeswitch.limits.conf /etc/security/limits.d/
 RUN apt-get autoremove
 RUN rm -rf /usr/src/*
 
+FROM scratch
+COPY --from=0 / /
+
 EXPOSE 8021/tcp
 EXPOSE 5060/tcp 5060/udp 5080/tcp 5080/udp
 EXPOSE 5061/tcp 5061/udp 5081/tcp 5081/udp
