@@ -53,7 +53,10 @@ RUN DEBIAN_FRONTEND=noninteractive apt-get -yq install \
     libshout3-dev libmpg123-dev libmp3lame-dev \
 
 # Other software
-    vim sngrep htop
+    vim sngrep htop \
+
+# TLS/SSL
+    libssl-dev
 
 RUN cd /usr/src/libs/libks && cmake . -DCMAKE_INSTALL_PREFIX=/usr -DWITH_LIBBACKTRACE=1 && make install
 RUN cd /usr/src/libs/sofia-sip && ./bootstrap.sh && ./configure CFLAGS="-g -ggdb" --with-pic --with-glib=no --without-doxygen --disable-stun --prefix=/usr && make -j`nproc --all` && make install
@@ -73,8 +76,6 @@ RUN cd /usr/src/libs/mod_bcg729 && sed 's\^FS_INCLUDES.*\FS_INCLUDES=/usr/local/
 
 RUN ln -sf /usr/local/freeswitch/bin/freeswitch /usr/bin/
 RUN ln -sf /usr/local/freeswitch/bin/fs_cli /usr/bin/
-#RUN mkdir -p /usr/share/freeswitch/conf
-#RUN cp -r /usr/src/freeswitch/conf/vanilla /usr/share/freeswitch/conf/vanilla
 
 # make the "en_US.UTF-8" locale so freeswitch will be utf-8 enabled by default
 RUN apt-get update && apt-get install -y locales && rm -rf /var/lib/apt/lists/* \
@@ -115,9 +116,6 @@ EXPOSE 7443/tcp
 EXPOSE 5070/udp 5070/tcp
 EXPOSE 64535-65535/udp
 EXPOSE 16384-32768/udp
-
-# Set up volumes
-# VOLUME ["/usr/local/freeswitch/conf"]
 
 SHELL ["/bin/bash"]
 HEALTHCHECK --interval=15s --timeout=5s \
