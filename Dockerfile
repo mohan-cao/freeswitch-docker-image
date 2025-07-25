@@ -1,4 +1,4 @@
-FROM debian:bookworm
+FROM debian:bookworm as builder
 MAINTAINER Mohan Cao <mohancao@yahoo.com.au>
 
 # Heavily adapted from https://articles.surfin.sg/2024/05/17/20240517/
@@ -90,7 +90,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends ca-certificates
     && gpg --verify /usr/local/bin/gosu.asc \
     && rm /usr/local/bin/gosu.asc \
     && chmod +x /usr/local/bin/gosu \
-    && apt-get purge -y --auto-remove ca-certificates wget
+    && apt-get purge -y --auto-remove wget
 
 # Set up permissions
 RUN groupadd -r freeswitch --gid=999 && useradd -r -g freeswitch --uid=999 freeswitch
@@ -104,10 +104,15 @@ RUN chmod +x docker-entrypoint.sh
 
 # Limits Configuration
 COPY freeswitch.limits.conf /etc/security/limits.d/
+COPY cron.sh /etc/cron.daily/
+RUN chmod +x /etc/cron.daily/cron.sh
 
 # Cleanup the image
 RUN apt-get autoremove
 RUN rm -rf /usr/src/*
+
+FROM scratch
+COPY --from=0 / /
 
 EXPOSE 8021/tcp
 EXPOSE 5060/tcp 5060/udp 5080/tcp 5080/udp
