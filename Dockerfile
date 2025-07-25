@@ -31,9 +31,6 @@ RUN DEBIAN_FRONTEND=noninteractive apt-get -yq install \
 # mod_enum
     libldns-dev \
 
-# mod_python3
-    python3-dev \
-
 # mod_av
     libavformat-dev libswscale-dev libswresample-dev \
 
@@ -69,6 +66,9 @@ RUN cd /usr/src/libs/signalwire-c && PKG_CONFIG_PATH=/usr/lib/pkgconfig cmake . 
 
 RUN sed -i 's|#formats/mod_shout|formats/mod_shout|' /usr/src/freeswitch/build/modules.conf.in
 RUN echo "codecs/mod_bcg729" >> /usr/src/freeswitch/build/modules.conf.in
+
+# Disable logfile since docker should have its own logdriver based on console output
+RUN sed -i 's|loggers/mod_logfile|#loggers/mod_logfile|' /usr/src/freeswitch/build/modules.conf.in
 
 RUN cd /usr/src/freeswitch && ./bootstrap.sh -j
 RUN cd /usr/src/freeswitch && ./configure
@@ -108,23 +108,36 @@ RUN chmod +x docker-entrypoint.sh
 COPY freeswitch.limits.conf /etc/security/limits.d/
 
 # Cleanup the image
-RUN apt-get autoremove
+RUN apt-get purge -y --auto-remove git
+RUN apt-get --purge autoremove
 RUN rm -rf /usr/src/*
+RUN rm -rf /usr/share/doc/*
+
+RUN DEBIAN_FRONTEND=noninteractive apt-get -yq remove \
+    build-essential cmake automake autoconf pkg-config \
+    libssl-dev zlib1g-dev libdb-dev unixodbc-dev libncurses5-dev libexpat1-dev libgdbm-dev bison erlang-dev libtpl-dev libtiff5-dev uuid-dev \
+    libpcre3-dev libedit-dev libsqlite3-dev libcurl4-openssl-dev nasm \
+    libogg-dev libspeex-dev libspeexdsp-dev \
+    libldns-dev \
+    libavformat-dev libswscale-dev libswresample-dev \
+    liblua5.2-dev \
+    libopus-dev \
+    libpq-dev \
+    libsndfile1-dev libflac-dev libogg-dev libvorbis-dev \
+    libshout3-dev libmpg123-dev libmp3lame-dev
 
 FROM scratch
 COPY --from=0 / /
 
-EXPOSE 8021/tcp
-EXPOSE 5060/tcp 5060/udp 5080/tcp 5080/udp
-EXPOSE 5061/tcp 5061/udp 5081/tcp 5081/udp
-EXPOSE 7443/tcp
-EXPOSE 5070/udp 5070/tcp
-EXPOSE 64535-65535/udp
-EXPOSE 16384-32768/udp
+#EXPOSE 8021/tcp
+#EXPOSE 5060/tcp 5060/udp 5080/tcp 5080/udp
+#EXPOSE 5061/tcp 5061/udp 5081/tcp 5081/udp
+#EXPOSE 7443/tcp
+#EXPOSE 5070/udp 5070/tcp
+#EXPOSE 64535-65535/udp
+#EXPOSE 16384-32768/udp
 
 SHELL ["/bin/bash"]
-HEALTHCHECK --interval=15s --timeout=5s \
-    CMD fs_cli -x status | grep -q ^UP
 
 ENTRYPOINT ["/docker-entrypoint.sh"]
 CMD ["freeswitch"]
