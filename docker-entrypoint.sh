@@ -22,7 +22,11 @@ if [ "$1" = 'freeswitch' ]; then
         done
     fi
 
-    exec gosu freeswitch /usr/bin/freeswitch -u freeswitch -g freeswitch -nonat -c -nf
+    exec gosu freeswitch /usr/bin/freeswitch -u freeswitch -g freeswitch \
+        -conf /etc/freeswitch \
+	-db /usr/local/freeswitch/db \
+        -log /usr/local/freeswitch/log \
+	-nonat -c -nf
 fi
 
 exec "$@"
